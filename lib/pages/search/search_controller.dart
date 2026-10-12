@@ -8,7 +8,10 @@ import 'package:kazumi/modules/search/search_history_module.dart';
 import 'package:kazumi/repositories/collect_repository.dart';
 import 'package:kazumi/repositories/search_history_repository.dart';
 import 'package:kazumi/request/apis/bangumi_api.dart';
+import 'package:kazumi/request/apis/tmdb_api.dart';
 import 'package:kazumi/request/apis/trace_api.dart';
+import 'package:kazumi/services/storage/storage.dart';
+import 'package:kazumi/services/storage/settings_keys.dart';
 import 'package:kazumi/utils/search_parser.dart';
 
 part 'search_controller.g.dart';
@@ -88,8 +91,11 @@ abstract class _SearchPageController with Store {
     if (generation != _searchGeneration) return;
     final filterState = SearchParser(input).toFilterState();
     final id = int.tryParse(filterState.id);
+    final useTmdb = GStorage.getSetting(SettingsKeys.dataSource) == 'tmdb';
     if (id != null) {
-      final item = await BangumiApi.getBangumiInfoByID(id);
+      final item = useTmdb
+          ? await TmdbApi.getTmdbInfoByID(id)
+          : await BangumiApi.getBangumiInfoByID(id);
       if (generation != _searchGeneration) return;
       if (item != null) {
         bangumiList.add(item);
@@ -101,15 +107,17 @@ abstract class _SearchPageController with Store {
     }
     var pagesFetched = 0;
     do {
-      final page = await BangumiApi.bangumiSearch(filterState.keyword,
-          tags: filterState.tags,
-          limit: _searchPageSize,
-          offset: _searchOffset,
-          sort: filterState.sort,
-          dateRange: filterState.effectiveDateRange,
-          rankRange: filterState.rankRange,
-          scoreRange: filterState.scoreRange,
-          weekdays: filterState.weekdays);
+      final page = useTmdb
+          ? await TmdbApi.tmdbSearch(filterState.keyword)
+          : await BangumiApi.bangumiSearch(filterState.keyword,
+              tags: filterState.tags,
+              limit: _searchPageSize,
+              offset: _searchOffset,
+              sort: filterState.sort,
+              dateRange: filterState.effectiveDateRange,
+              rankRange: filterState.rankRange,
+              scoreRange: filterState.scoreRange,
+              weekdays: filterState.weekdays);
       // Discard stale responses before mutating the current search.
       if (generation != _searchGeneration) return;
       if (page == null) {

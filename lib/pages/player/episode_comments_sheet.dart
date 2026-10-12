@@ -8,6 +8,9 @@ import 'package:kazumi/pages/player/episode_comments_picker.dart';
 import 'package:kazumi/pages/player/episode_comments_view.dart';
 import 'package:kazumi/pages/video/video_controller.dart';
 import 'package:kazumi/request/apis/bangumi_api.dart';
+import 'package:kazumi/request/apis/tmdb_api.dart';
+import 'package:kazumi/services/storage/storage.dart';
+import 'package:kazumi/services/storage/settings_keys.dart';
 
 class EpisodeCommentsSheet extends StatefulWidget {
   const EpisodeCommentsSheet({
@@ -110,10 +113,12 @@ class _EpisodeCommentsSheetState extends State<EpisodeCommentsSheet>
     if (dialogs.isRunning) return;
     final controller = _controller;
     await dialogs.run((task) async {
+      final useTmdb = GStorage.getSetting(SettingsKeys.dataSource) == 'tmdb';
       final episodes = await task.loading(
         message: '分集列表加载中',
-        action: () =>
-            BangumiApi.getBangumiEpisodesByID(controller.bangumiItem.id),
+        action: () => useTmdb
+            ? TmdbApi.getTmdbEpisodesByID(controller.bangumiItem.id)
+            : BangumiApi.getBangumiEpisodesByID(controller.bangumiItem.id),
       );
       if (episodes.isEmpty) {
         KazumiDialog.showToast(message: '未找到分集列表');

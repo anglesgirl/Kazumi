@@ -507,6 +507,17 @@ class SettingsKeys {
     false,
     group: SettingGroup.bangumi,
   );
+  // 数据源: 'bangumi' 或 'tmdb'
+  static const dataSource = SettingKey<String>(
+    _SettingBoxKey.dataSource,
+    'bangumi',
+    group: SettingGroup.bangumi,
+  );
+  static const tmdbApiKey = SettingKey<String>(
+    _SettingBoxKey.tmdbApiKey,
+    '',
+    group: SettingGroup.bangumi,
+  );
   static const bangumiAccessToken = SettingKey<String>(
     _SettingBoxKey.bangumiAccessToken,
     '',
@@ -758,6 +769,8 @@ class _SettingBoxKey {
       downloadDirectory = 'downloadDirectory',
       shortcutDialogShown = 'shortcutDialogShown',
       bangumiSyncEnable = 'bangumiSyncEnable',
+      dataSource = 'dataSource',
+      tmdbApiKey = 'tmdbApiKey',
       bangumiAccessToken = 'bangumiAccessToken',
       bangumiSyncPriority = 'bangumiSyncPriority',
       bangumiImmediateSyncToastEnable = 'bangumiImmediateSyncToastEnable',

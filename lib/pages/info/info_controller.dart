@@ -6,6 +6,9 @@ import 'package:kazumi/modules/bangumi/bangumi_review.dart';
 import 'package:kazumi/pages/collect/collect_controller.dart';
 import 'package:kazumi/modules/search/plugin_search_module.dart';
 import 'package:kazumi/request/apis/bangumi_api.dart';
+import 'package:kazumi/request/apis/tmdb_api.dart';
+import 'package:kazumi/services/storage/storage.dart';
+import 'package:kazumi/services/storage/settings_keys.dart';
 import 'package:mobx/mobx.dart';
 import 'package:kazumi/services/logging/logger.dart';
 import 'package:kazumi/modules/comments/comment_item.dart';
@@ -111,7 +114,10 @@ abstract class _InfoController with Store {
   }
 
   Future<void> _updateBangumiInfoByID(int id, {required String type}) async {
-    final value = await BangumiApi.getBangumiInfoByID(id);
+    final useTmdb = GStorage.getSetting(SettingsKeys.dataSource) == 'tmdb';
+    final value = useTmdb
+        ? await TmdbApi.getTmdbInfoByID(id)
+        : await BangumiApi.getBangumiInfoByID(id);
     if (value == null) {
       return;
     }

@@ -6,16 +6,16 @@ import 'package:dio/dio.dart';
 import 'package:kazumi/modules/bangumi/bangumi_item.dart';
 import 'package:kazumi/modules/bangumi/episode_item.dart';
 import 'package:kazumi/request/apis/bangumi_api.dart';
+import 'package:kazumi/services/storage/storage.dart';
+import 'package:kazumi/services/storage/settings_keys.dart';
 import 'package:kazumi/utils/date_time.dart';
 
 class TmdbApi {
   static const String _baseUrl = 'https://api.themoviedb.org/3';
   static const String _imageBase = 'https://image.tmdb.org/t/p/w500';
 
-  // TODO: 从设置页读取, 不要硬编码
-  static String _apiKey = '';
-
-  static set apiKey(String key) => _apiKey = key;
+  static String get _apiKey =>
+      GStorage.getSetting(SettingsKeys.tmdbApiKey).trim();
 
   static final Dio _dio = Dio(BaseOptions(
     baseUrl: _baseUrl,

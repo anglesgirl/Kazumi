@@ -15,6 +15,7 @@ import 'package:kazumi/bean/widget/state_presentation.dart';
 import 'package:kazumi/modules/bangumi/bangumi_item.dart';
 import 'package:kazumi/pages/search/search_controller.dart';
 import 'package:kazumi/services/storage/storage.dart';
+import 'package:kazumi/services/storage/settings_keys.dart';
 import 'package:kazumi/utils/constants.dart';
 import 'package:kazumi/utils/date_time.dart';
 import 'package:kazumi/utils/search_parser.dart';
@@ -134,12 +135,13 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _searchField() {
     final colors = Theme.of(context).colorScheme;
+    final isTmdb = GStorage.getSetting(SettingsKeys.dataSource) == 'tmdb';
     return ValueListenableBuilder<TextEditingValue>(
       valueListenable: _input,
       builder: (context, value, child) => SearchBar(
         controller: _input,
         focusNode: _inputFocus,
-        hintText: '搜索番剧名称',
+        hintText: isTmdb ? '搜索电影、电视剧名称' : '搜索番剧名称',
         textInputAction: TextInputAction.search,
         constraints: const BoxConstraints(minHeight: 64),
         elevation: const WidgetStatePropertyAll(0),
@@ -171,8 +173,63 @@ class _SearchPageState extends State<SearchPage> {
   Widget _header() => Padding(
         key: _searchHeaderKey,
         padding: EdgeInsets.only(top: _hasSearched ? 8 : 24, bottom: 16),
-        child: _searchField(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _dataSourceSwitcher(),
+            const SizedBox(height: 8),
+            _searchField(),
+          ],
+        ),
       );
+
+  /// 数据源切换器: Bangumi(番剧) / TMDB(影视)
+  Widget _dataSourceSwitcher() {
+    final current = GStorage.getSetting(SettingsKeys.dataSource);
+    final tmdbKey = GStorage.getSetting(SettingsKeys.tmdbApiKey).trim();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SegmentedButton<String>(
+          segments: const [
+            ButtonSegment(value: 'bangumi', label: Text('番剧'), icon: Icon(Icons.animation_rounded)),
+            ButtonSegment(value: 'tmdb', label: Text('影视'), icon: Icon(Icons.movie_rounded)),
+          ],
+          selected: {current},
+          onSelectionChanged: (Set<String> selected) {
+            final value = selected.first;
+            GStorage.setSetting(SettingsKeys.dataSource, value);
+            setState(() {});
+            // 切换数据源后清空当前搜索结果
+            if (_hasSearched) _clearSearch();
+          },
+          style: SegmentedButton.styleFrom(
+            visualDensity: VisualDensity.compact,
+          ),
+        ),
+        // TMDB 模式下显示 Key 输入框
+        if (current == 'tmdb') ...[
+          const SizedBox(height: 8),
+          TextField(
+            controller: TextEditingController(text: tmdbKey),
+            decoration: InputDecoration(
+              hintText: '输入 TMDB API Key',
+              prefixIcon: const Icon(Icons.key_rounded),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              isDense: true,
+            ),
+            onSubmitted: (value) {
+              GStorage.setSetting(SettingsKeys.tmdbApiKey, value.trim());
+              setState(() {});
+            },
+          ),
+        ],
+      ],
+    );
+  }
 
   Widget _discovery() {
     final theme = Theme.of(context);
