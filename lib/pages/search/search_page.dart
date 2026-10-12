@@ -198,7 +198,7 @@ class _SearchPageState extends State<SearchPage> {
           selected: {current},
           onSelectionChanged: (Set<String> selected) {
             final value = selected.first;
-            GStorage.setSetting(SettingsKeys.dataSource, value);
+            GStorage.putSetting(SettingsKeys.dataSource, value);
             setState(() {});
             // 切换数据源后清空当前搜索结果
             if (_hasSearched) _clearSearch();
@@ -222,7 +222,7 @@ class _SearchPageState extends State<SearchPage> {
               isDense: true,
             ),
             onSubmitted: (value) {
-              GStorage.setSetting(SettingsKeys.tmdbApiKey, value.trim());
+              GStorage.putSetting(SettingsKeys.tmdbApiKey, value.trim());
               setState(() {});
             },
           ),
